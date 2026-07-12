@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans,AgglomerativeClustering,DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 from scipy.cluster.hierarchy import linkage,dendrogram
-
+from sklearn.mixture import GaussianMixture
 
 #load data
 data=pd.read_csv('segmentation data.csv')
@@ -157,4 +157,40 @@ plt.show()
 
 mask=cluster_db!= -1
 score=silhouette_score(x_scaled[mask],cluster_db[mask])
+print(score)
+
+#gaussian mixture
+
+gaussion_ml=GaussianMixture(n_components=5,random_state=42)
+cluster_gm=gaussion_ml.fit_predict(x_scaled)
+df['cluster-gm']=cluster_gm
+
+print(df['cluster-gm'].value_counts())
+
+
+pca_gm=PCA(n_components=3)
+x_pca_gm=pca_gm.fit_transform(x_scaled)
+
+df_pca_gm=pd.DataFrame(x_pca_gm,columns=['pc1','pc2','pc3'])
+df_pca_gm['cluster-gm']=cluster_gm
+
+fig=plt.figure(figsize=(10,8))
+ax=fig.add_subplot(111,projection='3d')
+
+ax.scatter(
+    x_pca_gm[:,0],
+    x_pca_gm[:,1],
+    x_pca_gm[:,2],
+    c=df['cluster-gm'],
+    cmap='viridis',
+    s=40
+)
+ax.set_xlabel('pc1')
+ax.set_ylabel('pc2')
+ax.set_zlabel('pc3')
+plt.title('customer segmentation clusters (pca visualization Gaussion mixtur)') 
+plt.savefig('img/pca-gm-segmantation.png')
+plt.show()
+
+score=silhouette_score(x_scaled,cluster_gm)
 print(score)
