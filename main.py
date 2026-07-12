@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans,AgglomerativeClustering
+from sklearn.cluster import KMeans,AgglomerativeClustering,DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 from scipy.cluster.hierarchy import linkage,dendrogram
@@ -119,3 +119,42 @@ plt.show()
 
 score=silhouette_score(x_scaled,cluster_hil)
 print(f'silhouette score:{score:.3f}')
+
+#DBSCAN 
+
+dbscan=DBSCAN(eps=1.0,min_samples=6)
+cluster_db=dbscan.fit_predict(x_scaled)
+
+df['cluster-db']=cluster_db
+
+print(df['cluster-db'].value_counts())
+print(df['cluster-db'].nunique())
+
+
+pca_db=PCA(n_components=3)
+x_pca_db=pca_db.fit_transform(x_scaled)
+
+df_pca_db=pd.DataFrame(x_pca_db,columns=['pc1','pc2','pc3'])
+df_pca_db['cluster-db']=cluster_db
+
+fig=plt.figure(figsize=(10,8))
+ax=fig.add_subplot(111,projection='3d')
+
+ax.scatter(
+    x_pca_db[:,0],
+    x_pca_db[:,1],
+    x_pca_db[:,2],
+    c=df['cluster-db'],
+    cmap='viridis',
+    s=40
+)
+ax.set_xlabel('pc1')
+ax.set_ylabel('pc2')
+ax.set_zlabel('pc3')
+plt.title('customer segmentation clusters (pca visualization DBSCAN)') 
+plt.savefig('img/pca-db-segmantation.png')
+plt.show()
+
+mask=cluster_db!= -1
+score=silhouette_score(x_scaled[mask],cluster_db[mask])
+print(score)
